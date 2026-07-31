@@ -1,3 +1,5 @@
+import { asset } from '../lib/asset'
+
 /**
  * Tashqi SVG rasmlarni joriy matn rangida (oltin) ko'rsatish.
  * `mask` orqali ishlaydi — shuning uchun rasmni istalgan rangga bo'yash mumkin,
@@ -26,10 +28,10 @@ function ArtMask({ src, className = '', style }) {
 
 /** Nozik gul gulchambari (kvadratga yaqin nisbat) */
 export function Wreath({ className = '', style }) {
-  return <ArtMask src="/art/wreath.svg" className={className} style={style} />
+  return <ArtMask src={asset('art/wreath.svg')} className={className} style={style} />
 }
 
 /** Kuyov va kelin silueti (tik nisbat ~ 5:8) */
 export function CoupleArt({ className = '', style }) {
-  return <ArtMask src="/art/couple.svg" className={className} style={style} />
+  return <ArtMask src={asset('art/couple.svg')} className={className} style={style} />
 }

@@ -94,5 +94,29 @@ kamari) shu loyiha ichida SVG sifatida chizilgan.
 
 ## Joylash (deploy)
 
-`npm run build` dan keyin `dist/` papkasini istalgan statik hostingga
-yuklash kifoya (Netlify, Vercel, GitHub Pages, Cloudflare Pages).
+Loyihada GitHub Actions sozlangan: **`main` ga har push qilinganda sayt
+avtomatik qurilib, GitHub Pages'ga joylanadi**
+(`.github/workflows/deploy.yml`).
+
+Birinchi marta bir martalik sozlash kerak:
+GitHub repo → **Settings** → **Pages** → *Build and deployment* → Source:
+**GitHub Actions**. Shundan keyin sayt manzili:
+
+```
+https://abdulboriybaxodirovich.github.io/wedding-invitation/
+```
+
+Boshqa hostinglar (Netlify, Vercel, Cloudflare Pages) uchun ham tayyor —
+`npm run build` dan keyin `dist/` papkasini yuklash kifoya. `base: './'`
+sozlamasi tufayli sayt ildizda ham, ichki papkada ham ishlaydi.
+
+## Havola ko'rinishi (Telegram, WhatsApp)
+
+Havola ulashilganda ko'rinadigan sarlavha va tavsif `src/config.js` dagi
+`meta` bo'limidan olinadi — `index.html` ni tahrirlash shart emas, qurish
+paytida avtomatik joylashtiriladi.
+
+Oldindan ko'rinadigan rasm — `public/og.png` (1200×630). Ismlar yoki sana
+o'zgarsa, uni yangilash kerak: `scripts/og-card.html` faylidagi matnni
+tahrirlang, qurilgan saytning ildiziga qo'yib brauzerda oching va 1200×630
+o'lchamda skrinshot olib, `public/og.png` o'rniga saqlang.

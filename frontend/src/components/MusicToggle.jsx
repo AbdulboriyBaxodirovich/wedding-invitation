@@ -1,6 +1,7 @@
 import { motion } from 'framer-motion'
 import { useEffect, useRef, useState } from 'react'
 import { createAmbientMusic } from '../lib/music'
+import { asset } from '../lib/asset'
 
 const BARS = [0.45, 1, 0.65, 0.85]
 
@@ -27,7 +28,7 @@ export default function MusicToggle({ music, started }) {
     if (!configured) return
 
     if (music.mode === 'file') {
-      const audio = new Audio(music.src)
+      const audio = new Audio(asset(music.src))
       audio.loop = true
       audio.volume = music.volume
       audio.preload = 'auto'

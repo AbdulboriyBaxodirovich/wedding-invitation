@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="uz">
+  <head>
+    <meta charset="utf-8" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300&family=Inter:wght@300;400&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      body {
+        width: 1200px; height: 630px;
+        background: #fbf8f4;
+        display: flex; align-items: center; justify-content: center;
+        position: relative; overflow: hidden;
+        font-family: 'Inter', sans-serif;
+      }
+      .halo {
+        position: absolute; inset: 0;
+        background: radial-gradient(55% 60% at 50% 45%, #fff 0%, rgba(251,248,244,0) 70%);
+      }
+      .frame {
+        position: absolute; inset: 26px;
+        border: 1px solid rgba(185,155,107,0.35);
+      }
+      .wreath {
+        position: absolute; top: 50%; left: 50%;
+        width: 620px; height: 620px;
+        transform: translate(-50%, -50%);
+        background: #b99b6b; opacity: 0.17;
+        mask: url(./art/wreath.svg) center / contain no-repeat;
+        -webkit-mask: url(./art/wreath.svg) center / contain no-repeat;
+      }
+      .content { position: relative; text-align: center; }
+      .eyebrow {
+        font-size: 13px; letter-spacing: 0.42em; text-transform: uppercase;
+        color: #7a7168; font-weight: 400;
+      }
+      h1 {
+        font-family: 'Cormorant Garamond', serif; font-weight: 300;
+        font-size: 82px; line-height: 1.05; color: #2e2a25; letter-spacing: -0.01em;
+      }
+      .amp {
+        font-family: 'Cormorant Garamond', serif; font-style: italic;
+        font-size: 42px; color: #b99b6b; margin: 6px 0;
+      }
+      .rule {
+        display: flex; align-items: center; justify-content: center;
+        gap: 12px; margin: 30px 0 22px;
+      }
+      .rule i { display: block; width: 92px; height: 1px; background: #d9c7a7; }
+      .rule b { display: block; width: 7px; height: 7px; border: 1px solid #d9c7a7; transform: rotate(45deg); }
+      .date { font-size: 15px; letter-spacing: 0.45em; text-transform: uppercase; color: #7a7168; }
+    </style>
+  </head>
+  <body>
+    <div class="halo"></div>
+    <div class="frame"></div>
+    <div class="wreath"></div>
+    <div class="content">
+      <p class="eyebrow">Toʻy taklifnomasi</p>
+      <h1 style="margin-top: 26px">Abdulboriy</h1>
+      <p class="amp">&amp;</p>
+      <h1>Ozodaxon</h1>
+      <div class="rule"><i></i><b></b><i></i></div>
+      <p class="date">22 · Avgust · 2026</p>
+    </div>
+  </body>
+</html>
