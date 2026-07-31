@@ -94,21 +94,36 @@ kamari) shu loyiha ichida SVG sifatida chizilgan.
 
 ## Joylash (deploy)
 
-Loyihada GitHub Actions sozlangan: **`main` ga har push qilinganda sayt
-avtomatik qurilib, GitHub Pages'ga joylanadi**
-(`.github/workflows/deploy.yml`).
+Sayt GitHub Pages'da, `gh-pages` shoxchasida turadi. Yangilash uchun:
 
-Birinchi marta bir martalik sozlash kerak:
-GitHub repo → **Settings** → **Pages** → *Build and deployment* → Source:
-**GitHub Actions**. Shundan keyin sayt manzili:
+```bash
+npm run deploy
+```
+
+Bu buyruq saytni quradi va `gh-pages` shoxchasiga yuboradi. Bir-ikki
+daqiqadan so'ng manzil yangilanadi:
 
 ```
 https://abdulboriybaxodirovich.github.io/wedding-invitation/
 ```
 
-Boshqa hostinglar (Netlify, Vercel, Cloudflare Pages) uchun ham tayyor —
-`npm run build` dan keyin `dist/` papkasini yuklash kifoya. `base: './'`
-sozlamasi tufayli sayt ildizda ham, ichki papkada ham ishlaydi.
+**Birinchi marta** GitHub'da bitta sozlama yoqilishi kerak:
+repo → **Settings** → **Pages** → *Build and deployment* →
+Source: **Deploy from a branch** → Branch: **gh-pages** / **(root)** → Save.
+
+### Avtomatik joylash (ixtiyoriy)
+
+Har push'da sayt o'zi yangilanishini xohlasangiz,
+`scripts/github-pages-workflow.yml` faylini repoda `.github/workflows/`
+papkasiga ko'chiring va Pages manbasini **GitHub Actions** ga o'zgartiring.
+Diqqat: bu faylni push qilish uchun GitHub token'ingizda `workflow`
+ruxsati bo'lishi shart.
+
+### Boshqa hostinglar
+
+Netlify, Vercel, Cloudflare Pages uchun ham tayyor — `npm run build` dan
+keyin `dist/` papkasini yuklash kifoya. `base: './'` sozlamasi tufayli
+sayt ildizda ham, ichki papkada ham ishlaydi.
 
 ## Havola ko'rinishi (Telegram, WhatsApp)
 
