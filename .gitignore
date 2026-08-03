@@ -23,3 +23,10 @@ pnpm-debug.log*
 .idea
 .DS_Store
 *.swp
+
+# Asl (qayta ishlanmagan) media — saytga public/ orqali kiradi
+/frontend/*.mp3
+/frontend/*.png
+
+# Windows tomonidan yaratiladigan yordamchi fayllar
+*:Zone.Identifier

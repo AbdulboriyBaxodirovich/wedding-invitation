@@ -1,74 +1,62 @@
-import { motion, useScroll, useSpring } from 'framer-motion'
 import { useEffect, useState } from 'react'
-import AmbientBackdrop from './components/AmbientBackdrop'
-import Closing from './components/Closing'
-import Countdown from './components/Countdown'
-import CoupleFrame from './components/CoupleFrame'
-import Curtain from './components/Curtain'
-import EventDetails from './components/EventDetails'
-import Gift from './components/Gift'
-import Hero from './components/Hero'
-import Invitation from './components/Invitation'
-import Location from './components/Location'
+import Book from './components/Book'
 import MusicToggle from './components/MusicToggle'
-import PatternBand from './components/PatternBand'
-import Verse from './components/Verse'
+import CoverPage from './components/pages/CoverPage'
+import DatePage from './components/pages/DatePage'
+import PlacePage from './components/pages/PlacePage'
+import WordsPage from './components/pages/WordsPage'
 import { config } from './config'
+import { asset } from './lib/asset'
 import { parseEventDate } from './lib/date'
 
 const date = parseEventDate(config.event.date)
 
 export default function App() {
-  const [opened, setOpened] = useState(false)
+  const [page, setPage] = useState(0)
 
-  const { scrollYProgress } = useScroll()
-  const progress = useSpring(scrollYProgress, { stiffness: 120, damping: 30, mass: 0.3 })
+  // Birinchi varaqlash — foydalanuvchining harakati, musiqa shundan keyin boshlanadi
+  const opened = page > 0
 
-  // Sahifa qayta yuklanganda doim boshidan boshlansin
+  // Ichki sahifalar fonini oldindan yuklab qo'yamiz
   useEffect(() => {
-    if ('scrollRestoration' in history) history.scrollRestoration = 'manual'
-    window.scrollTo(0, 0)
+    if (!config.background?.image) return
+    const img = new Image()
+    img.src = asset(config.background.image)
   }, [])
+
+  const pages = [
+    <CoverPage
+      key="cover"
+      couple={config.couple}
+      cover={config.cover}
+      onOpen={() => setPage(1)}
+    />,
+    <WordsPage
+      key="words"
+      invitation={config.invitation}
+      verse={config.verse}
+      background={config.background}
+    />,
+    <DatePage
+      key="date"
+      date={date}
+      event={config.event}
+      couple={config.couple}
+      background={config.background}
+    />,
+    <PlacePage
+      key="place"
+      event={config.event}
+      gift={config.gift}
+      closing={config.closing}
+      background={config.background}
+    />,
+  ]
 
   return (
     <>
-      <AmbientBackdrop />
-
-      {/* Yuqoridagi ingichka o'qish indikatori */}
-      <motion.div
-        className="fixed inset-x-0 top-0 z-30 h-px origin-left bg-gold/60"
-        style={{ scaleX: progress }}
-        aria-hidden="true"
-      />
-
-      <Curtain
-        open={opened}
-        onOpen={() => setOpened(true)}
-        groom={config.couple.groom}
-        bride={config.couple.bride}
-        monogram={config.couple.monogram}
-        cover={config.cover}
-      />
-
+      <Book pages={pages} index={page} onChange={setPage} />
       <MusicToggle music={config.music} started={opened} />
-
-      <main className="relative">
-        <Hero started={opened} couple={config.couple} date={date} />
-        <Verse verse={config.verse} />
-        <Invitation invitation={config.invitation} />
-        <CoupleFrame couple={config.couple} />
-
-        <PatternBand className="my-4" opacity={0.28} />
-
-        <Countdown timestamp={date.timestamp} />
-        <EventDetails date={date} event={config.event} couple={config.couple} />
-        <Location event={config.event} />
-
-        <PatternBand className="my-4" opacity={0.28} />
-
-        {config.gift?.cardNumber && <Gift gift={config.gift} />}
-        <Closing closing={config.closing} couple={config.couple} date={date} />
-      </main>
     </>
   )
 }

@@ -36,6 +36,11 @@ export const config = {
     position: 'center',
   },
 
+  // Ichki varaqlarning fon rasmi (`public/` ichida)
+  background: {
+    image: 'bg.jpg',
+  },
+
   // Qur'on oyati yoki hikmatli so'z
   verse: {
     text: 'Alloh ularning qalblarini sevgi ila birlashtirdi.',
@@ -64,12 +69,13 @@ export const config = {
 
   // Fon musiqasi.
   //   mode: 'synth' — dutor kuyi brauzerda jonli sintez qilinadi (fayl kerak emas)
-  //   mode: 'file'  — o'zingizning mp3 faylingiz. Faylni `public/music/` ga
-  //                   tashlab, `src` ni ko'rsating: '/music/wedding.mp3'
+  //   mode: 'file'  — o'z audio faylingiz. Faylni `public/music/` ga tashlab,
+  //                   `src` ni ko'rsating. Kengaytma fayl turiga mos bo'lsin
+  //                   (mp3 / m4a) — aks holda ba'zi brauzerlar ijro etmaydi.
   music: {
-    mode: 'synth',
-    src: null,
-    volume: 0.3,
+    mode: 'file',
+    src: 'music/background.m4a',
+    volume: 0.35,
   },
 
   // Brauzer yorlig'i va havola ko'rinishi (Telegram/WhatsApp preview)
