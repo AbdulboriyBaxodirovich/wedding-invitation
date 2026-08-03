@@ -6,8 +6,8 @@ import { BookContext, PageMotionContext } from './bookContext'
 
 // Qog'ozning og'irligi: boshida biroz qarshilik, oxirida yumshoq to'xtash
 // Prujina: qog'ozning og'irligi va oxirida yumshoq joylashishi
-const FLIP = { type: 'spring', duration: 1.25, bounce: 0.16 }
-const FLIP_FALLBACK_MS = 2200
+const FLIP = { type: 'spring', duration: 1.9, bounce: 0.14 }
+const FLIP_FALLBACK_MS = 3000
 const SWIPE_THRESHOLD = 45
 
 /**
