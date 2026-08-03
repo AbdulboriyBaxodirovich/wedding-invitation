@@ -1,4 +1,4 @@
-import { animate, useMotionValue } from 'framer-motion'
+import { animate, motion, useMotionValue, useTransform } from 'framer-motion'
 import { useCallback, useMemo, useRef, useState } from 'react'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import CurlSheet from './CurlSheet'
@@ -25,6 +25,10 @@ export default function Book({ pages, onPageChange }) {
   const progress = useMotionValue(0)
   const pointerStart = useRef(null)
 
+  // Ustidagi varaq ostki sahifaga soya tashlaydi: varaq ko'tarilgani sari
+  // ostki sahifa yorishib boradi
+  const underShade = useTransform(progress, (p) => 0.68 * (1 - p))
+
   const total = pages.length
   const turning = turn !== null
 
@@ -42,14 +46,20 @@ export default function Book({ pages, onPageChange }) {
         curl: forward ? shown : next,
       })
 
+      // Varaqlash tugagach holatni yangilaymiz. Agar animatsiya kadrlari
+      // to'xtab qolsa (masalan, brauzer fonga o'tsa), zaxira taymer ishga
+      // tushadi — aks holda kitob qulflanib qolardi.
+      let done = false
+      const finish = () => {
+        if (done) return
+        done = true
+        setShown(next)
+        setTurn(null)
+      }
+
       progress.set(forward ? 0 : 1)
-      animate(progress, forward ? 1 : 0, {
-        ...FLIP,
-        onComplete: () => {
-          setShown(next)
-          setTurn(null)
-        },
-      })
+      animate(progress, forward ? 1 : 0, { ...FLIP, onComplete: finish })
+      setTimeout(finish, FLIP.duration * 1000 + 400)
 
       onPageChange?.(next)
     },
@@ -105,7 +115,16 @@ export default function Book({ pages, onPageChange }) {
             {pages[turn ? turn.under : shown]}
           </div>
 
-          {/* Ag'darilayotgan varaq */}
+          {/* Ustidagi varaqning soyasi */}
+        {turn && (
+          <motion.div
+            aria-hidden="true"
+            className="pointer-events-none absolute inset-0 bg-linear-to-r from-[rgb(78,52,62)] via-[rgba(78,52,62,0.72)] to-[rgba(78,52,62,0.58)]"
+            style={{ opacity: underShade }}
+          />
+        )}
+
+        {/* Ag'darilayotgan varaq */}
           {turn && <CurlSheet progress={progress}>{pages[turn.curl]}</CurlSheet>}
 
           {/* Varaqlash boshqaruvi */}

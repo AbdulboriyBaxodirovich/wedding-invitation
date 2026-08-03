@@ -30,6 +30,7 @@ function segmentShade(index, count, progress) {
   return 0.4 * Math.sin(Math.PI * progress) * ((index + 0.6) / count)
 }
 
+
 function Segment({ index, count, progress, children }) {
   const rotateY = useTransform(progress, (p) => segmentAngle(index, count, p))
   const shade = useTransform(progress, (p) => segmentShade(index, count, p))
@@ -85,11 +86,20 @@ function Segment({ index, count, progress, children }) {
 }
 
 export default function CurlSheet({ progress, children, segments = SEGMENTS }) {
+  // Varaq ag'darilib bo'lgach birdan yo'qolmasin — oxirida yumshoq so'nadi
+  const opacity = useTransform(progress, [0, 0.8, 1], [1, 1, 0])
+  // Butun varaq yuzadan ko'tariladi (bo'laklar uzilib qolmasligi uchun
+  // ko'tarilish faqat shu yerda — umumiy)
+  const lift = useTransform(progress, (p) => 34 * Math.sin(Math.PI * p))
+
   return (
-    <div className="pointer-events-none absolute inset-0 [transform-style:preserve-3d]">
+    <motion.div
+      className="pointer-events-none absolute inset-0 [transform-style:preserve-3d]"
+      style={{ opacity, z: lift }}
+    >
       <Segment index={0} count={segments} progress={progress}>
         {children}
       </Segment>
-    </div>
+    </motion.div>
   )
 }
