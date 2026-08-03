@@ -30,7 +30,7 @@ export default function DatePage({ date, event, couple, background }) {
   return (
     <PageFrame image={background?.image}>
       <Reveal>
-        <p className="eyebrow">Marosim kuni</p>
+        <p className="eyebrow">Toʻy kuni</p>
       </Reveal>
 
       {/* Kun nomi | sana | vaqt */}

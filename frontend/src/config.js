@@ -21,7 +21,6 @@ export const config = {
     date: '2026-08-22T18:00:00+05:00',
     timeLabel: '18:00',
     venue: 'Shodlik to\'yxonasi',
-    address: 'Farg\'ona shahri, Mustaqillik ko\'chasi 12',
     mapUrl:
       'https://yandex.uz/maps/?ll=71.660758%2C40.452674&mode=poi&poi%5Bpoint%5D=71.660566%2C40.452854&poi%5Buri%5D=ymapsbm1%3A%2F%2Forg%3Foid%3D153457882758&z=18.6',
   },
@@ -63,8 +62,8 @@ export const config = {
 
   // Tabrik uchun karta raqami. Ko'rsatmaslik uchun: card: null
   gift: {
-    cardNumber: '',
-    cardHolder: '',
+    cardNumber: '9860160426398774',
+    cardHolder: 'Umaraliyeva Ozodaxon',
   },
 
   // Fon musiqasi.

@@ -6,6 +6,9 @@ import Reveal from '../Reveal'
 import { Divider } from '../Ornament'
 import { copyText } from '../../lib/clipboard'
 
+/** Karta raqamini o'qishga qulay qilib 4 talab ajratamiz */
+const formatCard = (value) => value.replace(/\s+/g, '').replace(/(.{4})(?=.)/g, '$1 ')
+
 /** 4-varaq: manzil va tabrik uchun karta */
 export default function PlacePage({ event, gift, closing, background }) {
   const [copied, setCopied] = useState(false)
@@ -31,9 +34,11 @@ export default function PlacePage({ event, gift, closing, background }) {
         <h2 className="mt-6 font-display text-2xl font-light text-ink sm:text-3xl">
           {event.venue}
         </h2>
-        <p className="text-balance mt-3 text-[0.8rem] leading-relaxed text-muted">
-          {event.address}
-        </p>
+        {event.address && (
+          <p className="text-balance mt-3 text-[0.8rem] leading-relaxed text-muted">
+            {event.address}
+          </p>
+        )}
       </Reveal>
 
       <Reveal delay={0.14} className="w-full">
@@ -62,7 +67,7 @@ export default function PlacePage({ event, gift, closing, background }) {
             <div className="flex items-center justify-between gap-3">
               <div className="text-left">
                 <p className="font-display text-lg tracking-[0.1em] text-ink tabular-nums">
-                  {gift.cardNumber}
+                  {formatCard(gift.cardNumber)}
                 </p>
                 {gift.cardHolder && (
                   <p className="mt-1.5 text-[0.58rem] tracking-[0.2em] text-muted uppercase">

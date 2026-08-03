@@ -43,12 +43,16 @@ export function buildCalendarLink({ title, details, location, iso }) {
   const end = new Date(start.getTime() + 2 * 60 * 60 * 1000)
   const fmt = (d) => d.toISOString().replace(/[-:]|\.\d{3}/g, '')
 
-  const params = new URLSearchParams({
-    action: 'TEMPLATE',
-    text: title,
-    dates: `${fmt(start)}/${fmt(end)}`,
-    details,
-    location,
-  })
+  // Bo'sh maydonlarni tashlab yuboramiz — aks holda havolada
+  // "undefined" so'zi paydo bo'ladi
+  const params = new URLSearchParams(
+    Object.entries({
+      action: 'TEMPLATE',
+      text: title,
+      dates: `${fmt(start)}/${fmt(end)}`,
+      details,
+      location,
+    }).filter(([, value]) => value)
+  )
   return `https://calendar.google.com/calendar/render?${params}`
 }
