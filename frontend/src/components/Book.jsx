@@ -4,10 +4,12 @@ import { ChevronLeft, ChevronRight } from 'lucide-react'
 import CurlSheet from './CurlSheet'
 import { BookContext, PageMotionContext } from './bookContext'
 
-// Qog'ozning og'irligi: boshida biroz qarshilik, oxirida yumshoq to'xtash
-// Prujina: qog'ozning og'irligi va oxirida yumshoq joylashishi
-const FLIP = { type: 'spring', duration: 1.9, bounce: 0.14 }
-const FLIP_FALLBACK_MS = 3000
+// Prujina: qog'ozning og'irligi va oxirida yumshoq joylashishi.
+// DIQQAT: prujinada `duration` millisekundda o'lchanadi va kichik qiymatlar
+// eng past chegaraga qisqartiriladi — shuning uchun soniyada o'lchanadigan
+// `visualDuration` ishlatiladi (varaq ko'zga qancha cho'zilib ochilishi).
+const FLIP = { type: 'spring', visualDuration: 2, bounce: 0.14 }
+const FLIP_FALLBACK_MS = 3400
 const SWIPE_THRESHOLD = 45
 
 /**
