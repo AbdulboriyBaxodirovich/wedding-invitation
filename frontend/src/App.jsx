@@ -12,10 +12,8 @@ import { parseEventDate } from './lib/date'
 const date = parseEventDate(config.event.date)
 
 export default function App() {
-  const [page, setPage] = useState(0)
-
   // Birinchi varaqlash — foydalanuvchining harakati, musiqa shundan keyin boshlanadi
-  const opened = page > 0
+  const [opened, setOpened] = useState(false)
 
   // Ichki sahifalar fonini oldindan yuklab qo'yamiz
   useEffect(() => {
@@ -25,12 +23,7 @@ export default function App() {
   }, [])
 
   const pages = [
-    <CoverPage
-      key="cover"
-      couple={config.couple}
-      cover={config.cover}
-      onOpen={() => setPage(1)}
-    />,
+    <CoverPage key="cover" couple={config.couple} cover={config.cover} />,
     <WordsPage
       key="words"
       invitation={config.invitation}
@@ -55,7 +48,7 @@ export default function App() {
 
   return (
     <>
-      <Book pages={pages} index={page} onChange={setPage} />
+      <Book pages={pages} onPageChange={() => setOpened(true)} />
       <MusicToggle music={config.music} started={opened} />
     </>
   )

@@ -3,9 +3,12 @@ import PageFrame from './PageFrame'
 import PatternBand from '../PatternBand'
 import { Divider } from '../Ornament'
 import { Wreath } from '../Art'
+import { useBook } from '../bookContext'
 
 /** 1-varaq: ochilish oynasi */
-export default function CoverPage({ couple, cover, onOpen }) {
+export default function CoverPage({ couple, cover }) {
+  const book = useBook()
+
   return (
     <PageFrame image={cover?.image} fit="cover" veil={0.1} glow={0.75} className="!px-[9%] !py-[9%]">
       <PatternBand className="absolute inset-x-0 top-0" opacity={0.3} />
@@ -63,7 +66,7 @@ export default function CoverPage({ couple, cover, onOpen }) {
 
         <button
           type="button"
-          onClick={onOpen}
+          onClick={book.next}
           className="group relative overflow-hidden rounded-full border border-gold/60 bg-white/60 px-8 py-3.5 text-[0.7rem] tracking-[0.3em] text-ink uppercase backdrop-blur-sm transition-colors duration-500 hover:border-gold"
         >
           <span className="relative z-10 transition-colors duration-500 group-hover:text-white">
