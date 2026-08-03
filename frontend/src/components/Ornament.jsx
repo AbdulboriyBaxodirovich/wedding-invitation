@@ -1,8 +1,9 @@
 /** Ikki tomonida ingichka chiziq bo'lgan romb — bo'limlar ajratgichi */
-export function Divider({ className = '', width = 200 }) {
+export function Divider({ className = '', width = 200, color }) {
   return (
     <svg
       className={`text-gold-soft ${className}`}
+      style={color ? { color } : undefined}
       width={width}
       height="12"
       viewBox="0 0 200 12"

@@ -7,7 +7,7 @@ import { Wreath } from '../Art'
 /** 1-varaq: ochilish oynasi */
 export default function CoverPage({ couple, cover, onOpen }) {
   return (
-    <PageFrame image={cover?.image} fit="cover" veil={0.1} glow={0.75} className="!py-[9%]">
+    <PageFrame image={cover?.image} fit="cover" veil={0.1} glow={0.75} className="!px-[9%] !py-[9%]">
       <PatternBand className="absolute inset-x-0 top-0" opacity={0.3} />
       <PatternBand className="absolute inset-x-0 bottom-0" opacity={0.3} />
 
@@ -28,29 +28,38 @@ export default function CoverPage({ couple, cover, onOpen }) {
         />
 
         {/* Gulchambar ichidagi bosh harflar */}
-        <div className="relative mb-8 flex size-32 items-center justify-center sm:size-40">
+        <div className="relative mb-6 flex size-28 items-center justify-center sm:size-36">
           <motion.div
             className="absolute inset-0"
             initial={{ opacity: 0, scale: 0.85, rotate: -8 }}
             animate={{ opacity: 1, scale: 1, rotate: 0 }}
             transition={{ duration: 2.2, ease: [0.16, 1, 0.3, 1], delay: 0.4 }}
           >
-            <Wreath className="h-full w-full text-gold/60" />
+            <Wreath className="h-full w-full text-gold/85" />
           </motion.div>
-          <span className="font-display text-2xl italic tracking-wide text-gold sm:text-3xl">
+          <span
+            aria-hidden="true"
+            className="absolute inset-[18%] rounded-full"
+            style={{
+              background:
+                'radial-gradient(closest-side, rgba(255,252,253,0.9), rgba(255,252,253,0))',
+            }}
+          />
+          <span className="relative font-display text-2xl italic tracking-wide text-gold sm:text-3xl">
             {couple.monogram}
           </span>
         </div>
 
         <p className="eyebrow mb-5">Taklifnoma</p>
 
-        <h1 className="font-display text-[2.1rem] leading-tight font-light tracking-wide text-ink sm:text-5xl">
-          {couple.groom}
-          <span className="mx-2.5 italic text-gold">&</span>
-          {couple.bride}
+        {/* Ismlar alohida qatorda — uzun ism ham to'liq sig'adi */}
+        <h1 className="flex flex-col items-center font-display leading-[1.08] font-light tracking-wide text-ink">
+          <span className="text-[clamp(1.9rem,9.5vw,3.1rem)]">{couple.groom}</span>
+          <span className="my-1.5 text-[clamp(1.05rem,4vw,1.5rem)] italic text-gold">&</span>
+          <span className="text-[clamp(1.9rem,9.5vw,3.1rem)]">{couple.bride}</span>
         </h1>
 
-        <Divider className="my-7" width={150} />
+        <Divider className="my-7" width={150} color="var(--color-gold)" />
 
         <button
           type="button"

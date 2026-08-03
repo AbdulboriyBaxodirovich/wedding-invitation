@@ -2,10 +2,11 @@ import { AnimatePresence, motion } from 'framer-motion'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 
-// z-index butun son bo'lishi shart — uni animatsiyasiz, darhol qo'yamiz
+// Qog'ozning og'irligi: boshida biroz qarshilik, oxirida yumshoq to'xtash.
+// z-index butun son bo'lishi shart — uni animatsiyasiz, darhol qo'yamiz.
 const FLIP = {
-  duration: 0.9,
-  ease: [0.645, 0.045, 0.355, 1],
+  duration: 1.15,
+  ease: [0.42, 0.02, 0.22, 1],
   zIndex: { duration: 0 },
 }
 const SWIPE_THRESHOLD = 45
@@ -19,10 +20,28 @@ const SWIPE_THRESHOLD = 45
  */
 const variants = {
   enter: (direction) =>
-    direction > 0 ? { rotateY: 0, zIndex: 1 } : { rotateY: -180, zIndex: 3 },
-  center: { rotateY: 0, zIndex: 2 },
+    direction > 0
+      ? { rotateY: 0, rotateZ: 0, zIndex: 1 }
+      : { rotateY: -180, rotateZ: -1.4, zIndex: 3 },
+  // Varaq to'g'rilanayotganda ozgina "yotib" oladi — qog'oz qattiq emas
+  center: { rotateY: 0, rotateZ: 0, zIndex: 2 },
   exit: (direction) =>
-    direction > 0 ? { rotateY: -180, zIndex: 3 } : { rotateY: 0, zIndex: 1 },
+    direction > 0
+      ? { rotateY: -180, rotateZ: [0, -1.6, -0.4, 0], zIndex: 3 }
+      : { rotateY: 0, rotateZ: 0, zIndex: 1 },
+}
+
+/** Aylanayotgan varaqqa tushadigan soya — yuza yorug'likni "ushlaydi" */
+const frontShade = {
+  enter: { opacity: 0 },
+  center: { opacity: 0 },
+  exit: (direction) => (direction > 0 ? { opacity: [0, 0.5, 0.62, 0.3] } : { opacity: 0 }),
+}
+
+const backShade = {
+  enter: (direction) => (direction > 0 ? { opacity: 0 } : { opacity: [0.45, 0.2, 0] }),
+  center: { opacity: 0 },
+  exit: (direction) => (direction > 0 ? { opacity: [0.55, 0.3, 0.08] } : { opacity: 0 }),
 }
 
 export default function Book({ pages, index, onChange }) {
@@ -82,7 +101,7 @@ export default function Book({ pages, index, onChange }) {
     <div className="fixed inset-0 flex items-center justify-center overflow-hidden bg-blush">
       {/* Varaqning o'lchami: telefonda butun ekran, kattaroq ekranda karta */}
       <div
-        className="relative h-[100svh] w-full max-w-[27rem] [perspective:1800px] sm:h-[min(100svh,52rem)] sm:rounded-lg sm:shadow-[0_30px_80px_-40px_rgba(120,80,90,0.55)]"
+        className="relative h-[100svh] w-full max-w-[27rem] [perspective:1250px] sm:h-[min(100svh,52rem)] sm:rounded-lg sm:shadow-[0_30px_80px_-40px_rgba(120,80,90,0.55)]"
         onPointerDown={onPointerDown}
         onPointerUp={onPointerUp}
       >
@@ -100,13 +119,26 @@ export default function Book({ pages, index, onChange }) {
             {/* Old tomon — sahifa mazmuni */}
             <div className="no-scrollbar absolute inset-0 overflow-y-auto [backface-visibility:hidden] [scrollbar-width:none]">
               {page}
+
+              <motion.div
+                variants={frontShade}
+                transition={FLIP}
+                aria-hidden="true"
+                className="pointer-events-none absolute inset-0 bg-linear-to-l from-[rgba(90,60,70,0.55)] via-[rgba(120,90,100,0.18)] to-transparent"
+              />
             </div>
 
             {/* Orqa tomon — varaqlanayotganda ko'rinadigan bo'sh yuza */}
             <div
-              className="absolute inset-0 bg-linear-to-br from-white via-blush to-white/80 [backface-visibility:hidden] [transform:rotateY(180deg)]"
+              className="grain absolute inset-0 overflow-hidden bg-linear-to-bl from-white via-blush to-white/85 [backface-visibility:hidden] [transform:rotateY(180deg)]"
               aria-hidden="true"
-            />
+            >
+              <motion.div
+                variants={backShade}
+                transition={FLIP}
+                className="absolute inset-0 bg-linear-to-l from-transparent via-[rgba(120,90,100,0.14)] to-[rgba(90,60,70,0.42)]"
+              />
+            </div>
           </motion.div>
         </AnimatePresence>
 
