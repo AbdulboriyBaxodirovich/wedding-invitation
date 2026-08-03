@@ -12,7 +12,7 @@ import { motion, useTransform } from 'framer-motion'
  * hisoblanadi, shuning uchun bo'laklar orasida yoriq qolmaydi.
  */
 
-const SEGMENTS = 12
+const SEGMENTS = 24
 // Varaqning eng kuchli egilishi (gradus). Bo'laklarga taqsimlanganda
 // yig'ilib ketmasligi uchun bo'laklar soniga bo'linadi — shunda egilish
 // shakli bo'laklar sonidan qat'i nazar bir xil qoladi.
@@ -71,7 +71,7 @@ function Segment({ index, count, progress, forward, children }) {
       {/* Varaqning shu bo'lakka to'g'ri keladigan qismi */}
       <div
         className="absolute inset-y-0 left-0 overflow-hidden [backface-visibility:hidden]"
-        style={{ width: `${slice}%` }}
+        style={{ width: `calc(${slice}% + 1px)` }}
       >
         <div
           className="absolute inset-y-0"
@@ -106,8 +106,6 @@ function Segment({ index, count, progress, forward, children }) {
 }
 
 export default function CurlSheet({ progress, forward = true, children, segments = SEGMENTS }) {
-  // Varaq ag'darilib bo'lgach birdan yo'qolmasin — oxirida yumshoq so'nadi
-  const opacity = useTransform(progress, [0, 0.82, 1], [1, 1, 0])
   // Butun varaq yuzadan ko'tariladi (ko'tarilish har bo'lakka alohida
   // berilsa, ular 3D fazoda uzilib qoladi — shuning uchun umumiy)
   const lift = useTransform(progress, (p) => 42 * phaseOf(p, forward))
@@ -115,7 +113,7 @@ export default function CurlSheet({ progress, forward = true, children, segments
   return (
     <motion.div
       className="pointer-events-none absolute inset-0 [transform-style:preserve-3d]"
-      style={{ opacity, z: lift }}
+      style={{ z: lift }}
     >
       <Segment index={0} count={segments} progress={progress} forward={forward}>
         {children}

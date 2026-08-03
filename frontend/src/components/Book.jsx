@@ -142,8 +142,19 @@ export default function Book({ pages, onPageChange }) {
             </PageMotionContext>
           )}
 
-          {/* Varaqlash boshqaruvi */}
-          <div className="pointer-events-none absolute inset-x-0 bottom-4 z-10 flex items-center justify-center gap-5">
+          {/* Karta chegarasidan tashqariga chiqqan varaqni yopadi — varaq
+            so'nib emas, chetga siljib ko'zdan g'oyib bo'ladi */}
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-y-0 right-full z-20 w-screen bg-blush"
+        />
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-y-0 left-full z-20 w-screen bg-blush"
+        />
+
+        {/* Varaqlash boshqaruvi */}
+          <div className="pointer-events-none absolute inset-x-0 bottom-4 z-30 flex items-center justify-center gap-5">
             <NavButton
               direction="prev"
               disabled={target === 0}
