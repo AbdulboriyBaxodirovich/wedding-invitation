@@ -5,7 +5,9 @@ import CurlSheet from './CurlSheet'
 import { BookContext, PageMotionContext } from './bookContext'
 
 // Qog'ozning og'irligi: boshida biroz qarshilik, oxirida yumshoq to'xtash
-const FLIP = { duration: 1.3, ease: [0.52, 0.02, 0.18, 1] }
+// Prujina: qog'ozning og'irligi va oxirida yumshoq joylashishi
+const FLIP = { type: 'spring', duration: 1.25, bounce: 0.16 }
+const FLIP_FALLBACK_MS = 2200
 const SWIPE_THRESHOLD = 45
 
 /**
@@ -62,7 +64,7 @@ export default function Book({ pages, onPageChange }) {
 
       progress.set(forward ? 0 : 1)
       animate(progress, forward ? 1 : 0, { ...FLIP, onComplete: finish })
-      setTimeout(finish, FLIP.duration * 1000 + 400)
+      setTimeout(finish, FLIP_FALLBACK_MS)
 
       onPageChange?.(next)
     },
@@ -132,7 +134,9 @@ export default function Book({ pages, onPageChange }) {
         {/* Ag'darilayotgan varaq */}
           {turn && (
             <PageMotionContext value={false}>
-              <CurlSheet progress={progress}>{pages[turn.curl]}</CurlSheet>
+              <CurlSheet progress={progress} forward={turn.forward}>
+                {pages[turn.curl]}
+              </CurlSheet>
             </PageMotionContext>
           )}
 

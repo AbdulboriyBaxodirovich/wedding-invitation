@@ -12,30 +12,48 @@ import { motion, useTransform } from 'framer-motion'
  * hisoblanadi, shuning uchun bo'laklar orasida yoriq qolmaydi.
  */
 
-const SEGMENTS = 6
-const BEND = 46 // eng kuchli egilish (gradus)
+const SEGMENTS = 12
+// Varaqning eng kuchli egilishi (gradus). Bo'laklarga taqsimlanganda
+// yig'ilib ketmasligi uchun bo'laklar soniga bo'linadi — shunda egilish
+// shakli bo'laklar sonidan qat'i nazar bir xil qoladi.
+const CURL = 34
+const SHADE_RGB = '92, 62, 72'
+
+/**
+ * Egilish bosqichi. Oldinga varaqlaganda ham, orqaga qaytganda ham
+ * egilish harakat boshida kuchayib, oxiriga borib tekislanadi.
+ */
+function phaseOf(progress, forward) {
+  const t = forward ? progress : 1 - progress
+  return Math.sin(Math.PI * Math.pow(Math.min(Math.max(t, 0), 1), 0.72))
+}
 
 /** i-bo'lakning oldingi bo'lakka nisbatan burilish burchagi */
-function segmentAngle(index, count, progress) {
+function segmentAngle(index, count, progress, forward) {
   const total = -180 * progress // varaqning umumiy burilishi
   const even = total / count // har bo'lakka teng ulush
-  // Egilish boshida tez kuchayadi, oxiriga borib tekislanadi — qog'ozni
-  // chetidan ko'targandagidek (eng kuchli nuqta o'rtadan oldinroq)
-  const bend = BEND * Math.sin(Math.PI * Math.pow(progress, 0.72))
+  const bend = ((8 * CURL) / count) * phaseOf(progress, forward)
   const weight = (index + 0.5) / count - 0.5 // tashqi bo'laklar oldinroq egiladi
 
   return even + bend * weight
 }
 
 /** Yuzaga tushadigan soya: nurdan ko'proq burilgan bo'lak qorong'iroq */
-function segmentShade(index, count, progress) {
-  return 0.42 * Math.sin(Math.PI * Math.pow(progress, 0.72)) * ((index + 0.6) / count)
+function segmentShade(index, count, progress, forward) {
+  const depth = Math.min(Math.max((index + 0.5) / count, 0), 1)
+  return 0.44 * phaseOf(progress, forward) * depth
 }
 
+function Segment({ index, count, progress, forward, children }) {
+  const rotateY = useTransform(progress, (p) => segmentAngle(index, count, p, forward))
 
-function Segment({ index, count, progress, children }) {
-  const rotateY = useTransform(progress, (p) => segmentAngle(index, count, p))
-  const shade = useTransform(progress, (p) => segmentShade(index, count, p))
+  // Soya qo'shni bo'lakning darajasidan boshlanadi — shunda bo'laklar
+  // chegarasi bilinmaydi, yorug'lik butun varaq bo'ylab silliq o'tadi
+  const shading = useTransform(progress, (p) => {
+    const from = segmentShade(index - 1, count, p, forward)
+    const to = segmentShade(index, count, p, forward)
+    return `linear-gradient(to right, rgba(${SHADE_RGB}, ${from}), rgba(${SHADE_RGB}, ${to}))`
+  })
 
   const remaining = count - index // shu qatlamda qolgan bo'laklar
   const slice = 100 / remaining // bitta bo'lakning shu qatlamdagi eni, %
@@ -62,8 +80,8 @@ function Segment({ index, count, progress, children }) {
           {children}
         </div>
         <motion.div
-          className="absolute inset-0 bg-[rgb(92,62,72)]"
-          style={{ opacity: shade }}
+          className="absolute inset-0"
+          style={{ backgroundImage: shading }}
           aria-hidden="true"
         />
       </div>
@@ -74,12 +92,12 @@ function Segment({ index, count, progress, children }) {
         style={{ width: `${slice}%` }}
         aria-hidden="true"
       >
-        <motion.div className="absolute inset-0 bg-[rgb(92,62,72)]" style={{ opacity: shade }} />
+        <motion.div className="absolute inset-0" style={{ backgroundImage: shading }} />
       </div>
 
       {/* Keyingi bo'lak — shu bo'lakning o'ng chekkasiga ulanadi */}
       {index + 1 < count && (
-        <Segment index={index + 1} count={count} progress={progress}>
+        <Segment index={index + 1} count={count} progress={progress} forward={forward}>
           {children}
         </Segment>
       )}
@@ -87,19 +105,19 @@ function Segment({ index, count, progress, children }) {
   )
 }
 
-export default function CurlSheet({ progress, children, segments = SEGMENTS }) {
+export default function CurlSheet({ progress, forward = true, children, segments = SEGMENTS }) {
   // Varaq ag'darilib bo'lgach birdan yo'qolmasin — oxirida yumshoq so'nadi
-  const opacity = useTransform(progress, [0, 0.8, 1], [1, 1, 0])
-  // Butun varaq yuzadan ko'tariladi (bo'laklar uzilib qolmasligi uchun
-  // ko'tarilish faqat shu yerda — umumiy)
-  const lift = useTransform(progress, (p) => 40 * Math.sin(Math.PI * Math.pow(p, 0.72)))
+  const opacity = useTransform(progress, [0, 0.82, 1], [1, 1, 0])
+  // Butun varaq yuzadan ko'tariladi (ko'tarilish har bo'lakka alohida
+  // berilsa, ular 3D fazoda uzilib qoladi — shuning uchun umumiy)
+  const lift = useTransform(progress, (p) => 42 * phaseOf(p, forward))
 
   return (
     <motion.div
       className="pointer-events-none absolute inset-0 [transform-style:preserve-3d]"
       style={{ opacity, z: lift }}
     >
-      <Segment index={0} count={segments} progress={progress}>
+      <Segment index={0} count={segments} progress={progress} forward={forward}>
         {children}
       </Segment>
     </motion.div>
