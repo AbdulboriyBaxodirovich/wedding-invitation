@@ -26,6 +26,16 @@ export const config = {
       'https://yandex.uz/maps/?ll=71.660758%2C40.452674&mode=poi&poi%5Bpoint%5D=71.660566%2C40.452854&poi%5Buri%5D=ymapsbm1%3A%2F%2Forg%3Foid%3D153457882758&z=18.6',
   },
 
+  // Ochilish oynasidagi rasm (parda ochilganda ikkiga bo'linadi).
+  //   image  — `public/` ichidagi fayl nomi. Rasm kerak bo'lmasa: null
+  //   veil   — rasm ustidagi oq parda qalinligi: 0 (rasm to'liq ochiq) … 1 (deyarli oq)
+  //   position — rasmning qaysi qismi ko'rinsin: 'center', 'top', 'bottom'
+  cover: {
+    image: 'cover.jpg',
+    veil: 0.6,
+    position: 'center',
+  },
+
   // Qur'on oyati yoki hikmatli so'z
   verse: {
     text: 'Alloh ularning qalblarini sevgi ila birlashtirdi.',

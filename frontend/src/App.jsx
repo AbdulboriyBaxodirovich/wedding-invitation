@@ -47,6 +47,7 @@ export default function App() {
         groom={config.couple.groom}
         bride={config.couple.bride}
         monogram={config.couple.monogram}
+        cover={config.cover}
       />
 
       <MusicToggle music={config.music} started={opened} />

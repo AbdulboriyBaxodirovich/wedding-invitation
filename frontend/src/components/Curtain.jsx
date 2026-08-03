@@ -1,17 +1,67 @@
 import { AnimatePresence, motion } from 'framer-motion'
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { Divider } from './Ornament'
 import { Wreath } from './Art'
 import PatternBand from './PatternBand'
+import { asset } from '../lib/asset'
 
 const EASE = [0.76, 0, 0.24, 1]
+const SLIDE = { duration: 1, ease: EASE }
 
 /**
- * Ochilish pardasi. Foydalanuvchi tugmani bosgach ko'tariladi —
- * shu bosish musiqani ham ishga tushirish huquqini beradi
+ * Pardaning yarmi: to'liq balandlikdagi rasmning yuqori yoki quyi qismi.
+ * Ikki yarim birga bitta butun rasmni hosil qiladi — parda ochilganda
+ * rasm o'rtasidan bo'linib, ikki tomonga siljiydi.
+ */
+function CoverHalf({ half, image, veil, position }) {
+  const veilColor = `rgba(251, 248, 244, ${veil})`
+  const denseVeil = `rgba(251, 248, 244, ${Math.min(1, veil + 0.12)})`
+
+  return (
+    <div
+      className={`absolute inset-x-0 h-[200%] ${half === 'top' ? 'top-0' : 'bottom-0'}`}
+      aria-hidden="true"
+    >
+      <img
+        src={image}
+        alt=""
+        className="h-full w-full object-cover"
+        style={{ objectPosition: position }}
+      />
+      {/* Oq parda: matn o'qilishi uchun markaz qalinroq */}
+      <div
+        className="absolute inset-0"
+        style={{
+          background: `linear-gradient(to bottom,
+            ${veilColor} 0%,
+            ${denseVeil} 35%,
+            ${denseVeil} 82%,
+            ${veilColor} 100%)`,
+        }}
+      />
+    </div>
+  )
+}
+
+/**
+ * Ochilish pardasi. Foydalanuvchi tugmani bosgach parda ikkiga bo'linib
+ * ochiladi — shu bosish musiqani ham ishga tushirish huquqini beradi
  * (brauzerlar avtomatik ovozni bloklaydi).
  */
-export default function Curtain({ open, onOpen, groom, bride, monogram }) {
+export default function Curtain({ open, onOpen, groom, bride, monogram, cover }) {
+  const [imageReady, setImageReady] = useState(false)
+
+  const image = cover?.image ? asset(cover.image) : null
+
+  // Rasmni oldindan yuklaymiz — yarim yuklangan holda ko'rinib qolmasin
+  useEffect(() => {
+    if (!image) return
+
+    const img = new Image()
+    img.onload = () => setImageReady(true)
+    img.src = image
+  }, [image])
+
   // Parda yopiq turganda sahifa siljimasin
   useEffect(() => {
     document.body.style.overflow = open ? '' : 'hidden'
@@ -20,39 +70,61 @@ export default function Curtain({ open, onOpen, groom, bride, monogram }) {
     }
   }, [open])
 
+  const showImage = Boolean(image) && imageReady
+  const halfProps = {
+    image,
+    veil: cover?.veil ?? 0.6,
+    position: cover?.position ?? 'center',
+  }
+
   return (
     <AnimatePresence>
       {!open && (
         <motion.div
           className="fixed inset-0 z-50 flex items-center justify-center"
           exit={{ opacity: 0 }}
-          transition={{ duration: 0.6, delay: 0.9 }}
+          transition={{ duration: 0.25, delay: 0.95 }}
         >
           {/* Yuqoridan va pastdan ochiladigan ikki panel */}
           <motion.div
-            className="absolute inset-x-0 top-0 h-1/2 bg-cream"
+            className="absolute inset-x-0 top-0 h-1/2 overflow-hidden bg-cream"
             exit={{ y: '-100%' }}
-            transition={{ duration: 1.3, ease: EASE }}
+            transition={SLIDE}
           >
+            {showImage && <CoverHalf half="top" {...halfProps} />}
             <PatternBand className="absolute inset-x-0 top-0" opacity={0.3} />
           </motion.div>
+
           <motion.div
-            className="absolute inset-x-0 bottom-0 h-1/2 bg-cream"
+            className="absolute inset-x-0 bottom-0 h-1/2 overflow-hidden bg-cream"
             exit={{ y: '100%' }}
-            transition={{ duration: 1.3, ease: EASE }}
+            transition={SLIDE}
           >
+            {showImage && <CoverHalf half="bottom" {...halfProps} />}
             <PatternBand className="absolute inset-x-0 bottom-0" opacity={0.3} />
           </motion.div>
 
           <motion.div
-            className="relative flex flex-col items-center px-8 text-center"
+            className="relative isolate flex flex-col items-center px-8 text-center"
             initial={{ opacity: 0, y: 18 }}
             animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.96, transition: { duration: 0.5 } }}
+            exit={{ opacity: 0, y: -12, transition: { duration: 0.35 } }}
             transition={{ duration: 1.1, delay: 0.25, ease: [0.16, 1, 0.3, 1] }}
           >
+            {/* Matnni rasmdan ajratib turadigan yumshoq yorug'lik */}
+            {showImage && (
+              <div
+                aria-hidden="true"
+                className="pointer-events-none absolute top-1/2 left-1/2 -z-10 aspect-square w-[150%] -translate-x-1/2 -translate-y-1/2"
+                style={{
+                  background:
+                    'radial-gradient(closest-side, rgba(251,248,244,0.92) 0%, rgba(251,248,244,0.72) 45%, rgba(251,248,244,0) 78%)',
+                }}
+              />
+            )}
+
             {/* Gulchambar ichidagi bosh harflar */}
-            <div className="relative mb-9 flex size-40 items-center justify-center sm:size-48">
+            <div className="relative mb-9 flex size-36 items-center justify-center sm:size-44">
               <motion.div
                 className="absolute inset-0"
                 initial={{ opacity: 0, scale: 0.85, rotate: -8 }}
@@ -79,7 +151,7 @@ export default function Curtain({ open, onOpen, groom, bride, monogram }) {
             <button
               type="button"
               onClick={onOpen}
-              className="group relative overflow-hidden rounded-full border border-gold/50 px-9 py-3.5 text-[0.7rem] tracking-[0.3em] text-ink uppercase transition-colors duration-500 hover:border-gold"
+              className="group relative overflow-hidden rounded-full border border-gold/60 bg-cream/70 px-9 py-3.5 text-[0.7rem] tracking-[0.3em] text-ink uppercase backdrop-blur-sm transition-colors duration-500 hover:border-gold"
             >
               <span className="relative z-10 transition-colors duration-500 group-hover:text-cream">
                 Ochish

@@ -79,6 +79,27 @@ public/art/
   couple.svg           — kuyov va kelin silueti (CC0)
 ```
 
+## Ochilish rasmi
+
+Ochilish oynasidagi rasm — `public/cover.jpg`. Tugma bosilganda u
+o'rtasidan ikkiga bo'linib, yuqoriga va pastga siljiydi.
+
+O'z rasmingizni qo'yish uchun faylni `public/` ichiga tashlang va
+`src/config.js` da nomini yozing:
+
+```js
+cover: {
+  image: 'cover.jpg',   // public/ ichidagi fayl nomi; rasm kerak bo'lmasa: null
+  veil: 0.6,            // rasm ustidagi oq parda: 0 (ochiq) … 1 (deyarli oq)
+  position: 'center',   // rasmning qaysi qismi ko'rinsin: 'center' | 'top' | 'bottom'
+}
+```
+
+Maslahat: tik (portret) formatdagi, ochiq rangli rasm eng yaxshi chiqadi.
+Hajmi 400 KB dan oshmasin — bu mehmon ko'radigan birinchi ekran, og'ir
+rasm sekin ochiladi. Matn o'qilmay qolsa `veil` ni oshiring.
+Rasm topilmasa yoki `null` bo'lsa, sayt eski ko'rinishida ochiladi.
+
 ## Rasmlar manbasi
 
 `public/art/` dagi ikkala tasvir **CC0 (public domain)** litsenziyasi ostida
@@ -88,6 +109,10 @@ rangga boʻyash uchun `currentColor` ga oʻtkazilgan va hajmi ixchamlashtirilgan
 
 - [Bride And Groom Silhouette](https://freesvg.org/bride-and-groom-silhouette)
 - [Floral wreath](https://freesvg.org/floral-wreath)
+
+Ochilish rasmi `public/cover.jpg` ham **CC0** — muallif: MyStockPhotos,
+[Flickr](https://www.flickr.com/photos/136375272@N05/48506318901).
+Bu vaqtinchalik namuna; o'z rasmingiz bilan almashtirsangiz bo'ladi.
 
 Qolgan barcha bezaklar (naqsh tasmasi, shoxchalar, ajratgichlar, mehrob
 kamari) shu loyiha ichida SVG sifatida chizilgan.
