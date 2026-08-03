@@ -13,13 +13,15 @@ import { motion, useTransform } from 'framer-motion'
  */
 
 const SEGMENTS = 6
-const BEND = 30 // eng kuchli egilish (gradus)
+const BEND = 46 // eng kuchli egilish (gradus)
 
 /** i-bo'lakning oldingi bo'lakka nisbatan burilish burchagi */
 function segmentAngle(index, count, progress) {
   const total = -180 * progress // varaqning umumiy burilishi
   const even = total / count // har bo'lakka teng ulush
-  const bend = BEND * Math.sin(Math.PI * progress) // o'rtada eng kuchli
+  // Egilish boshida tez kuchayadi, oxiriga borib tekislanadi — qog'ozni
+  // chetidan ko'targandagidek (eng kuchli nuqta o'rtadan oldinroq)
+  const bend = BEND * Math.sin(Math.PI * Math.pow(progress, 0.72))
   const weight = (index + 0.5) / count - 0.5 // tashqi bo'laklar oldinroq egiladi
 
   return even + bend * weight
@@ -27,7 +29,7 @@ function segmentAngle(index, count, progress) {
 
 /** Yuzaga tushadigan soya: nurdan ko'proq burilgan bo'lak qorong'iroq */
 function segmentShade(index, count, progress) {
-  return 0.4 * Math.sin(Math.PI * progress) * ((index + 0.6) / count)
+  return 0.42 * Math.sin(Math.PI * Math.pow(progress, 0.72)) * ((index + 0.6) / count)
 }
 
 
@@ -90,7 +92,7 @@ export default function CurlSheet({ progress, children, segments = SEGMENTS }) {
   const opacity = useTransform(progress, [0, 0.8, 1], [1, 1, 0])
   // Butun varaq yuzadan ko'tariladi (bo'laklar uzilib qolmasligi uchun
   // ko'tarilish faqat shu yerda — umumiy)
-  const lift = useTransform(progress, (p) => 34 * Math.sin(Math.PI * p))
+  const lift = useTransform(progress, (p) => 40 * Math.sin(Math.PI * Math.pow(p, 0.72)))
 
   return (
     <motion.div

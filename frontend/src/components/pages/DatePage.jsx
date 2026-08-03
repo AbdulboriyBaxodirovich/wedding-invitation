@@ -5,11 +5,13 @@ import Reveal from '../Reveal'
 import { WEEKDAYS } from '../../config'
 import { buildCalendarLink, buildMonthGrid } from '../../lib/date'
 import { useCountdown } from '../../hooks/useCountdown'
+import { usePageMotion } from '../bookContext'
 
 const pad = (n) => String(n).padStart(2, '0')
 
 /** 3-varaq: to'y sanasi va qolgan vaqt */
 export default function DatePage({ date, event, couple, background }) {
+  const animated = usePageMotion()
   const { days, hours, minutes, seconds, isPast } = useCountdown(date.timestamp)
   const grid = buildMonthGrid(date.year, date.month)
 
@@ -69,7 +71,7 @@ export default function DatePage({ date, event, couple, background }) {
                     <motion.span
                       aria-hidden="true"
                       className="absolute size-7 rounded-full bg-gold"
-                      initial={{ scale: 0 }}
+                      initial={animated ? { scale: 0 } : false}
                       animate={{ scale: 1 }}
                       transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1], delay: 0.9 }}
                     />

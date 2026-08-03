@@ -3,11 +3,12 @@ import PageFrame from './PageFrame'
 import PatternBand from '../PatternBand'
 import { Divider } from '../Ornament'
 import { Wreath } from '../Art'
-import { useBook } from '../bookContext'
+import { useBook, usePageMotion } from '../bookContext'
 
 /** 1-varaq: ochilish oynasi */
 export default function CoverPage({ couple, cover }) {
   const book = useBook()
+  const animated = usePageMotion()
 
   return (
     <PageFrame image={cover?.image} fit="cover" veil={0.1} glow={0.75} className="!px-[9%] !py-[9%]">
@@ -16,7 +17,7 @@ export default function CoverPage({ couple, cover }) {
 
       <motion.div
         className="relative isolate flex flex-col items-center"
-        initial={{ opacity: 0, y: 18 }}
+        initial={animated ? { opacity: 0, y: 18 } : false}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 1.1, delay: 0.25, ease: [0.16, 1, 0.3, 1] }}
       >
@@ -34,7 +35,7 @@ export default function CoverPage({ couple, cover }) {
         <div className="relative mb-6 flex size-28 items-center justify-center sm:size-36">
           <motion.div
             className="absolute inset-0"
-            initial={{ opacity: 0, scale: 0.85, rotate: -8 }}
+            initial={animated ? { opacity: 0, scale: 0.85, rotate: -8 } : false}
             animate={{ opacity: 1, scale: 1, rotate: 0 }}
             transition={{ duration: 2.2, ease: [0.16, 1, 0.3, 1], delay: 0.4 }}
           >

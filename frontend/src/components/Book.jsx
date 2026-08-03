@@ -2,10 +2,10 @@ import { animate, motion, useMotionValue, useTransform } from 'framer-motion'
 import { useCallback, useMemo, useRef, useState } from 'react'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import CurlSheet from './CurlSheet'
-import { BookContext } from './bookContext'
+import { BookContext, PageMotionContext } from './bookContext'
 
 // Qog'ozning og'irligi: boshida biroz qarshilik, oxirida yumshoq to'xtash
-const FLIP = { duration: 1.15, ease: [0.42, 0.02, 0.22, 1] }
+const FLIP = { duration: 1.3, ease: [0.52, 0.02, 0.18, 1] }
 const SWIPE_THRESHOLD = 45
 
 /**
@@ -21,7 +21,8 @@ const SWIPE_THRESHOLD = 45
 export default function Book({ pages, onPageChange }) {
   const [shown, setShown] = useState(0) // ostida ko'rinib turgan sahifa
   const [target, setTarget] = useState(0) // varaqlash yakunida bo'ladigan sahifa
-  const [turn, setTurn] = useState(null) // { under, curl }
+  const [turn, setTurn] = useState(null) // { under, curl, forward }
+  const [firstView, setFirstView] = useState(true) // birinchi ochilish
   const progress = useMotionValue(0)
   const pointerStart = useRef(null)
 
@@ -41,9 +42,11 @@ export default function Book({ pages, onPageChange }) {
 
       const forward = next > shown
       setTarget(next)
+      setFirstView(false)
       setTurn({
         under: forward ? next : shown,
         curl: forward ? shown : next,
+        forward,
       })
 
       // Varaqlash tugagach holatni yangilaymiz. Agar animatsiya kadrlari
@@ -111,9 +114,11 @@ export default function Book({ pages, onPageChange }) {
           onPointerUp={onPointerUp}
         >
           {/* Ostki qatlam */}
-          <div className="no-scrollbar absolute inset-0 overflow-y-auto [scrollbar-width:none]">
-            {pages[turn ? turn.under : shown]}
-          </div>
+          <PageMotionContext value={turn ? turn.forward : firstView}>
+            <div className="no-scrollbar absolute inset-0 overflow-y-auto [scrollbar-width:none]">
+              {pages[turn ? turn.under : shown]}
+            </div>
+          </PageMotionContext>
 
           {/* Ustidagi varaqning soyasi */}
         {turn && (
@@ -125,7 +130,11 @@ export default function Book({ pages, onPageChange }) {
         )}
 
         {/* Ag'darilayotgan varaq */}
-          {turn && <CurlSheet progress={progress}>{pages[turn.curl]}</CurlSheet>}
+          {turn && (
+            <PageMotionContext value={false}>
+              <CurlSheet progress={progress}>{pages[turn.curl]}</CurlSheet>
+            </PageMotionContext>
+          )}
 
           {/* Varaqlash boshqaruvi */}
           <div className="pointer-events-none absolute inset-x-0 bottom-4 z-10 flex items-center justify-center gap-5">
