@@ -13,11 +13,11 @@ import { motion, useTransform } from 'framer-motion'
  */
 
 const SEGMENTS = 24
-// Varaqning eng kuchli egilishi (gradus). Bo'laklarga taqsimlanganda
-// yig'ilib ketmasligi uchun bo'laklar soniga bo'linadi — shunda egilish
-// shakli bo'laklar sonidan qat'i nazar bir xil qoladi.
-const CURL = 34
+const CURL = 34 // varaqning eng kuchli egilishi (gradus)
+const FACE_WINDOW = 46 // old va orqa yuz almashadigan oraliq (gradus)
 const SHADE_RGB = '92, 62, 72'
+
+const clamp01 = (v) => Math.min(Math.max(v, 0), 1)
 
 /**
  * Egilish bosqichi. Oldinga varaqlaganda ham, orqaga qaytganda ham
@@ -25,7 +25,7 @@ const SHADE_RGB = '92, 62, 72'
  */
 function phaseOf(progress, forward) {
   const t = forward ? progress : 1 - progress
-  return Math.sin(Math.PI * Math.pow(Math.min(Math.max(t, 0), 1), 0.72))
+  return Math.sin(Math.PI * Math.pow(clamp01(t), 0.72))
 }
 
 /** i-bo'lakning oldingi bo'lakka nisbatan burilish burchagi */
@@ -38,14 +38,35 @@ function segmentAngle(index, count, progress, forward) {
   return even + bend * weight
 }
 
+/** i-bo'lakning ekranga nisbatan umumiy burchagi (barcha oldingilari bilan) */
+function cumulativeAngle(index, count, progress, forward) {
+  const m = index + 1
+  const total = -180 * progress
+  const bend = ((8 * CURL) / count) * phaseOf(progress, forward)
+  const sumWeights = (m * m) / (2 * count) - 0.5 * m
+
+  return (total * m) / count + bend * sumWeights
+}
+
+/**
+ * Bo'lak qay darajada orqa tomonga o'girilgan: 0 — old yuz, 1 — orqa yuz.
+ * Almashuv keskin emas, keng oraliqda yumshoq o'tadi — aks holda bo'laklar
+ * birin-ketin "yonib-o'chgandek" ko'rinadi.
+ */
+function faceMix(index, count, progress, forward) {
+  const angle = Math.abs(cumulativeAngle(index, count, progress, forward))
+  return clamp01((angle - (90 - FACE_WINDOW / 2)) / FACE_WINDOW)
+}
+
 /** Yuzaga tushadigan soya: nurdan ko'proq burilgan bo'lak qorong'iroq */
 function segmentShade(index, count, progress, forward) {
-  const depth = Math.min(Math.max((index + 0.5) / count, 0), 1)
-  return 0.44 * phaseOf(progress, forward) * depth
+  return 0.44 * phaseOf(progress, forward) * clamp01((index + 0.5) / count)
 }
 
 function Segment({ index, count, progress, forward, children }) {
   const rotateY = useTransform(progress, (p) => segmentAngle(index, count, p, forward))
+  const frontOpacity = useTransform(progress, (p) => 1 - faceMix(index, count, p, forward))
+  const backOpacity = useTransform(progress, (p) => faceMix(index, count, p, forward))
 
   // Soya qo'shni bo'lakning darajasidan boshlanadi — shunda bo'laklar
   // chegarasi bilinmaydi, yorug'lik butun varaq bo'ylab silliq o'tadi
@@ -58,6 +79,7 @@ function Segment({ index, count, progress, forward, children }) {
   const remaining = count - index // shu qatlamda qolgan bo'laklar
   const slice = 100 / remaining // bitta bo'lakning shu qatlamdagi eni, %
   const parentSlice = 100 / (remaining + 1) // ota qatlamdagi bo'lak eni, %
+  const sliceWidth = `calc(${slice}% + 1px)` // 1px ustma-ust — yoriq qolmasin
 
   return (
     <motion.div
@@ -69,9 +91,9 @@ function Segment({ index, count, progress, forward, children }) {
       }}
     >
       {/* Varaqning shu bo'lakka to'g'ri keladigan qismi */}
-      <div
-        className="absolute inset-y-0 left-0 overflow-hidden [backface-visibility:hidden]"
-        style={{ width: `calc(${slice}% + 1px)` }}
+      <motion.div
+        className="absolute inset-y-0 left-0 overflow-hidden"
+        style={{ width: sliceWidth, opacity: frontOpacity }}
       >
         <div
           className="absolute inset-y-0"
@@ -84,16 +106,16 @@ function Segment({ index, count, progress, forward, children }) {
           style={{ backgroundImage: shading }}
           aria-hidden="true"
         />
-      </div>
+      </motion.div>
 
       {/* Varaqning orqa tomoni */}
-      <div
-        className="grain absolute inset-y-0 left-0 overflow-hidden bg-linear-to-bl from-white via-blush to-white/85 [backface-visibility:hidden] [transform:rotateY(180deg)]"
-        style={{ width: `calc(${slice}% + 1px)` }}
+      <motion.div
+        className="grain absolute inset-y-0 left-0 overflow-hidden bg-linear-to-bl from-white via-blush to-white/85"
+        style={{ width: sliceWidth, opacity: backOpacity }}
         aria-hidden="true"
       >
         <motion.div className="absolute inset-0" style={{ backgroundImage: shading }} />
-      </div>
+      </motion.div>
 
       {/* Keyingi bo'lak — shu bo'lakning o'ng chekkasiga ulanadi */}
       {index + 1 < count && (
@@ -106,6 +128,9 @@ function Segment({ index, count, progress, forward, children }) {
 }
 
 export default function CurlSheet({ progress, forward = true, children, segments = SEGMENTS }) {
+  // Varaq oxiriga borib butunligicha, sekin singib yo'qoladi;
+  // orqaga qaytganda esa xuddi shunday sekin qaytib chiqadi
+  const opacity = useTransform(progress, [0.6, 1], [1, 0])
   // Butun varaq yuzadan ko'tariladi (ko'tarilish har bo'lakka alohida
   // berilsa, ular 3D fazoda uzilib qoladi — shuning uchun umumiy)
   const lift = useTransform(progress, (p) => 42 * phaseOf(p, forward))
@@ -113,7 +138,7 @@ export default function CurlSheet({ progress, forward = true, children, segments
   return (
     <motion.div
       className="pointer-events-none absolute inset-0 [transform-style:preserve-3d]"
-      style={{ z: lift }}
+      style={{ opacity, z: lift }}
     >
       <Segment index={0} count={segments} progress={progress} forward={forward}>
         {children}
