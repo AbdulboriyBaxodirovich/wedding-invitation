@@ -89,7 +89,7 @@ function Segment({ index, count, progress, forward, children }) {
       {/* Varaqning orqa tomoni */}
       <div
         className="grain absolute inset-y-0 left-0 overflow-hidden bg-linear-to-bl from-white via-blush to-white/85 [backface-visibility:hidden] [transform:rotateY(180deg)]"
-        style={{ width: `${slice}%` }}
+        style={{ width: `calc(${slice}% + 1px)` }}
         aria-hidden="true"
       >
         <motion.div className="absolute inset-0" style={{ backgroundImage: shading }} />

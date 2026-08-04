@@ -142,16 +142,22 @@ export default function Book({ pages, onPageChange }) {
             </PageMotionContext>
           )}
 
-          {/* Karta chegarasidan tashqariga chiqqan varaqni yopadi — varaq
-            so'nib emas, chetga siljib ko'zdan g'oyib bo'ladi */}
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute inset-y-0 right-full z-20 w-screen bg-blush"
-        />
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute inset-y-0 left-full z-20 w-screen bg-blush"
-        />
+          {/* Karta chegarasidan tashqarisini yopadigan pardalar. Varaq
+            aylanayotganda perspektiva tufayli karta chetidan chiqib ketadi —
+            bu pardalar uni to'rt tomondan ham yashiradi, shuning uchun varaq
+            so'nib emas, chetga siljib ko'zdan g'oyib bo'ladi. */}
+        {[
+          'right-full top-[-100vh] h-[300vh] w-screen',
+          'left-full top-[-100vh] h-[300vh] w-screen',
+          'bottom-full left-[-100vw] h-screen w-[300vw]',
+          'top-full left-[-100vw] h-screen w-[300vw]',
+        ].map((position) => (
+          <div
+            key={position}
+            aria-hidden="true"
+            className={`pointer-events-none absolute z-20 bg-blush ${position}`}
+          />
+        ))}
 
         {/* Varaqlash boshqaruvi */}
           <div className="pointer-events-none absolute inset-x-0 bottom-4 z-30 flex items-center justify-center gap-5">
