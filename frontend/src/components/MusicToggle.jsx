@@ -4,6 +4,7 @@ import { createAmbientMusic } from '../lib/music'
 import { asset } from '../lib/asset'
 
 const BARS = [0.45, 1, 0.65, 0.85]
+const FADE_SECONDS = 5
 
 /**
  * Fon musiqasi tugmasi.
@@ -29,10 +30,26 @@ export default function MusicToggle({ music, started }) {
 
     if (music.mode === 'file') {
       const audio = new Audio(asset(music.src))
-      audio.loop = true
       audio.volume = music.volume
       audio.preload = 'auto'
       audio.addEventListener('error', () => setFailed(true))
+
+      // Halqa nuqtasida ovoz keskin uzilib qolmasligi uchun `loop`
+      // o'rniga qo'lda qayta boshlaymiz: shu tufayli oxirgi FADE_SECONDS
+      // soniyada ovozni asta pasaytirish imkoni bor.
+      audio.addEventListener('timeupdate', () => {
+        if (!Number.isFinite(audio.duration)) return
+        const remaining = audio.duration - audio.currentTime
+        audio.volume =
+          remaining > 0 && remaining <= FADE_SECONDS
+            ? music.volume * (remaining / FADE_SECONDS)
+            : music.volume
+      })
+      audio.addEventListener('ended', () => {
+        audio.currentTime = 0
+        audio.volume = music.volume
+        audio.play()
+      })
 
       engineRef.current = {
         start: () => audio.play(),
