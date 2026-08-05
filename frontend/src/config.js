@@ -81,7 +81,7 @@ export const config = {
   meta: {
     title: 'Abdulboriy & Ozodaxon — Toʻy taklifnomasi',
     description:
-      'Sizni toʻyimizga taklif qilamiz. 22-avgust, 2026-yil, soat 18:00.',
+      'Sizni toʻyimizga taklif qilamiz. 22-avgust, 2026-yil, soat 9:00.',
   },
 }
 
