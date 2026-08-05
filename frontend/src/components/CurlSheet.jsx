@@ -33,20 +33,20 @@ function phaseOf(progress) {
 }
 
 /** i-bo'lakning oldingi bo'lakka nisbatan burilish burchagi */
-function segmentAngle(index, count, progress, sign) {
-  const total = sign * 180 * progress // varaqning umumiy burilishi
+function segmentAngle(index, count, progress) {
+  const total = -180 * progress // varaqning umumiy burilishi
   const even = total / count // har bo'lakka teng ulush
-  const bend = sign * ((8 * CURL) / count) * phaseOf(progress)
+  const bend = ((8 * CURL) / count) * phaseOf(progress)
   const weight = (index + 0.5) / count - 0.5 // tashqi bo'laklar oldinroq egiladi
 
   return even + bend * weight
 }
 
 /** i-bo'lakning ekranga nisbatan umumiy burchagi (barcha oldingilari bilan) */
-function cumulativeAngle(index, count, progress, sign) {
+function cumulativeAngle(index, count, progress) {
   const m = index + 1
-  const total = sign * 180 * progress
-  const bend = sign * ((8 * CURL) / count) * phaseOf(progress)
+  const total = -180 * progress
+  const bend = ((8 * CURL) / count) * phaseOf(progress)
   const sumWeights = (m * m) / (2 * count) - 0.5 * m
 
   return (total * m) / count + bend * sumWeights
@@ -57,8 +57,8 @@ function cumulativeAngle(index, count, progress, sign) {
  * Almashuv keskin emas, keng oraliqda yumshoq o'tadi — aks holda bo'laklar
  * birin-ketin "yonib-o'chgandek" ko'rinadi.
  */
-function faceMix(index, count, progress, sign) {
-  const angle = Math.abs(cumulativeAngle(index, count, progress, sign))
+function faceMix(index, count, progress) {
+  const angle = Math.abs(cumulativeAngle(index, count, progress))
   return clamp01((angle - (90 - FACE_WINDOW / 2)) / FACE_WINDOW)
 }
 
@@ -67,10 +67,10 @@ function segmentShade(index, count, progress) {
   return 0.44 * phaseOf(progress) * clamp01((index + 0.5) / count)
 }
 
-function Segment({ index, count, progress, sign, children }) {
-  const rotateY = useTransform(progress, (p) => segmentAngle(index, count, p, sign))
-  const frontOpacity = useTransform(progress, (p) => 1 - faceMix(index, count, p, sign))
-  const backOpacity = useTransform(progress, (p) => faceMix(index, count, p, sign))
+function Segment({ index, count, progress, children }) {
+  const rotateY = useTransform(progress, (p) => segmentAngle(index, count, p))
+  const frontOpacity = useTransform(progress, (p) => 1 - faceMix(index, count, p))
+  const backOpacity = useTransform(progress, (p) => faceMix(index, count, p))
 
   // Soya qo'shni bo'lakning darajasidan boshlanadi — shunda bo'laklar
   // chegarasi bilinmaydi, yorug'lik butun varaq bo'ylab silliq o'tadi
@@ -123,7 +123,7 @@ function Segment({ index, count, progress, sign, children }) {
 
       {/* Keyingi bo'lak — shu bo'lakning o'ng chekkasiga ulanadi */}
       {index + 1 < count && (
-        <Segment index={index + 1} count={count} progress={progress} sign={sign}>
+        <Segment index={index + 1} count={count} progress={progress}>
           {children}
         </Segment>
       )}
@@ -132,9 +132,6 @@ function Segment({ index, count, progress, sign, children }) {
 }
 
 export default function CurlSheet({ progress, forward = true, children, segments = SEGMENTS }) {
-  // Oldinga varaqlashda soat yo'nalishi bo'yicha, orqaga qaytishda teskarisiga
-  const sign = forward ? -1 : 1
-
   // Varaq oxiriga borib butunligicha, sekin singib yo'qoladi — shu payt
   // ostidagi qatlam (allaqachon bir xil mazmunni ko'rsatib turgan) bilan
   // uzilishsiz almashadi
@@ -143,13 +140,25 @@ export default function CurlSheet({ progress, forward = true, children, segments
   // berilsa, ular 3D fazoda uzilib qoladi — shuning uchun umumiy)
   const lift = useTransform(progress, (p) => 42 * phaseOf(p))
 
+  // Geometriya doim "oldinga" yo'nalishida (chapdan o'ngga) hisoblanadi.
+  // Orqaga qaytishda butun varaq oynadagidek gorizontal aks ettiriladi —
+  // shunda tebranish nuqtasi o'ngga ko'chadi va varaq chap tomondan
+  // tushayotgandek yopiladi. Mazmun o'qilishi uchun ichkarida yana bir
+  // marta aks ettiriladi (ikki aks ettirish bir-birini bekor qiladi).
+  const mirror = !forward
+  const content = mirror ? (
+    <div className="h-full w-full [transform:scaleX(-1)]">{children}</div>
+  ) : (
+    children
+  )
+
   return (
     <motion.div
       className="pointer-events-none absolute inset-0 [transform-style:preserve-3d]"
-      style={{ opacity, z: lift }}
+      style={{ opacity, z: lift, scaleX: mirror ? -1 : 1 }}
     >
-      <Segment index={0} count={segments} progress={progress} sign={sign}>
-        {children}
+      <Segment index={0} count={segments} progress={progress}>
+        {content}
       </Segment>
     </motion.div>
   )
