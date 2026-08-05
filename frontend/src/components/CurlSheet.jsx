@@ -8,6 +8,14 @@ import { motion, useTransform } from 'framer-motion'
  * yig'indisi doim to'liq burilishga (180°) teng bo'ladi, ular orasidagi farq
  * esa varaqni egik ko'rsatadi — xuddi chekkasidan ko'tarilgan qog'ozdek.
  *
+ * `progress` doim 0 (tekis, hozirgi holat) dan 1 (to'liq ag'darilgan) gacha
+ * boradi — yo'nalishdan qat'i nazar. Varaqning mazmuni ham doim "hozir
+ * ko'rinib turgan sahifa" (`children` — chaqiruvchi tomonidan `from`
+ * sahifasi beriladi): shu tufayli harakat boshida varaq allaqachon
+ * ko'rinib turgan sahifa bilan bir xil bo'lib, uzilishsiz boshlanadi.
+ * Faqat aylanish YO'NALISHI (`forward`) bilan farqlanadi: oldinga
+ * varaqlashda soat yo'nalishi bo'yicha, orqaga qaytishda teskarisiga.
+ *
  * O'lchamlar foizda beriladi va har qatlam o'z ota-qatlamiga nisbatan
  * hisoblanadi, shuning uchun bo'laklar orasida yoriq qolmaydi.
  */
@@ -19,30 +27,26 @@ const SHADE_RGB = '92, 62, 72'
 
 const clamp01 = (v) => Math.min(Math.max(v, 0), 1)
 
-/**
- * Egilish bosqichi. Oldinga varaqlaganda ham, orqaga qaytganda ham
- * egilish harakat boshida kuchayib, oxiriga borib tekislanadi.
- */
-function phaseOf(progress, forward) {
-  const t = forward ? progress : 1 - progress
-  return Math.sin(Math.PI * Math.pow(clamp01(t), 0.72))
+/** Egilish bosqichi: harakat boshida kuchayadi, oxiriga borib tekislanadi */
+function phaseOf(progress) {
+  return Math.sin(Math.PI * Math.pow(clamp01(progress), 0.72))
 }
 
 /** i-bo'lakning oldingi bo'lakka nisbatan burilish burchagi */
-function segmentAngle(index, count, progress, forward) {
-  const total = -180 * progress // varaqning umumiy burilishi
+function segmentAngle(index, count, progress, sign) {
+  const total = sign * 180 * progress // varaqning umumiy burilishi
   const even = total / count // har bo'lakka teng ulush
-  const bend = ((8 * CURL) / count) * phaseOf(progress, forward)
+  const bend = sign * ((8 * CURL) / count) * phaseOf(progress)
   const weight = (index + 0.5) / count - 0.5 // tashqi bo'laklar oldinroq egiladi
 
   return even + bend * weight
 }
 
 /** i-bo'lakning ekranga nisbatan umumiy burchagi (barcha oldingilari bilan) */
-function cumulativeAngle(index, count, progress, forward) {
+function cumulativeAngle(index, count, progress, sign) {
   const m = index + 1
-  const total = -180 * progress
-  const bend = ((8 * CURL) / count) * phaseOf(progress, forward)
+  const total = sign * 180 * progress
+  const bend = sign * ((8 * CURL) / count) * phaseOf(progress)
   const sumWeights = (m * m) / (2 * count) - 0.5 * m
 
   return (total * m) / count + bend * sumWeights
@@ -53,26 +57,26 @@ function cumulativeAngle(index, count, progress, forward) {
  * Almashuv keskin emas, keng oraliqda yumshoq o'tadi — aks holda bo'laklar
  * birin-ketin "yonib-o'chgandek" ko'rinadi.
  */
-function faceMix(index, count, progress, forward) {
-  const angle = Math.abs(cumulativeAngle(index, count, progress, forward))
+function faceMix(index, count, progress, sign) {
+  const angle = Math.abs(cumulativeAngle(index, count, progress, sign))
   return clamp01((angle - (90 - FACE_WINDOW / 2)) / FACE_WINDOW)
 }
 
 /** Yuzaga tushadigan soya: nurdan ko'proq burilgan bo'lak qorong'iroq */
-function segmentShade(index, count, progress, forward) {
-  return 0.44 * phaseOf(progress, forward) * clamp01((index + 0.5) / count)
+function segmentShade(index, count, progress) {
+  return 0.44 * phaseOf(progress) * clamp01((index + 0.5) / count)
 }
 
-function Segment({ index, count, progress, forward, children }) {
-  const rotateY = useTransform(progress, (p) => segmentAngle(index, count, p, forward))
-  const frontOpacity = useTransform(progress, (p) => 1 - faceMix(index, count, p, forward))
-  const backOpacity = useTransform(progress, (p) => faceMix(index, count, p, forward))
+function Segment({ index, count, progress, sign, children }) {
+  const rotateY = useTransform(progress, (p) => segmentAngle(index, count, p, sign))
+  const frontOpacity = useTransform(progress, (p) => 1 - faceMix(index, count, p, sign))
+  const backOpacity = useTransform(progress, (p) => faceMix(index, count, p, sign))
 
   // Soya qo'shni bo'lakning darajasidan boshlanadi — shunda bo'laklar
   // chegarasi bilinmaydi, yorug'lik butun varaq bo'ylab silliq o'tadi
   const shading = useTransform(progress, (p) => {
-    const from = segmentShade(index - 1, count, p, forward)
-    const to = segmentShade(index, count, p, forward)
+    const from = segmentShade(index - 1, count, p)
+    const to = segmentShade(index, count, p)
     return `linear-gradient(to right, rgba(${SHADE_RGB}, ${from}), rgba(${SHADE_RGB}, ${to}))`
   })
 
@@ -119,7 +123,7 @@ function Segment({ index, count, progress, forward, children }) {
 
       {/* Keyingi bo'lak — shu bo'lakning o'ng chekkasiga ulanadi */}
       {index + 1 < count && (
-        <Segment index={index + 1} count={count} progress={progress} forward={forward}>
+        <Segment index={index + 1} count={count} progress={progress} sign={sign}>
           {children}
         </Segment>
       )}
@@ -128,19 +132,23 @@ function Segment({ index, count, progress, forward, children }) {
 }
 
 export default function CurlSheet({ progress, forward = true, children, segments = SEGMENTS }) {
-  // Varaq oxiriga borib butunligicha, sekin singib yo'qoladi;
-  // orqaga qaytganda esa xuddi shunday sekin qaytib chiqadi
+  // Oldinga varaqlashda soat yo'nalishi bo'yicha, orqaga qaytishda teskarisiga
+  const sign = forward ? -1 : 1
+
+  // Varaq oxiriga borib butunligicha, sekin singib yo'qoladi — shu payt
+  // ostidagi qatlam (allaqachon bir xil mazmunni ko'rsatib turgan) bilan
+  // uzilishsiz almashadi
   const opacity = useTransform(progress, [0.6, 1], [1, 0])
   // Butun varaq yuzadan ko'tariladi (ko'tarilish har bo'lakka alohida
   // berilsa, ular 3D fazoda uzilib qoladi — shuning uchun umumiy)
-  const lift = useTransform(progress, (p) => 42 * phaseOf(p, forward))
+  const lift = useTransform(progress, (p) => 42 * phaseOf(p))
 
   return (
     <motion.div
       className="pointer-events-none absolute inset-0 [transform-style:preserve-3d]"
       style={{ opacity, z: lift }}
     >
-      <Segment index={0} count={segments} progress={progress} forward={forward}>
+      <Segment index={0} count={segments} progress={progress} sign={sign}>
         {children}
       </Segment>
     </motion.div>

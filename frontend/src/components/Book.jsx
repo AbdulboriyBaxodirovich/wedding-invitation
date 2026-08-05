@@ -1,31 +1,45 @@
 import { animate, motion, useMotionValue, useTransform } from 'framer-motion'
-import { useCallback, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import CurlSheet from './CurlSheet'
 import { BookContext, PageMotionContext } from './bookContext'
 
-// Prujina: qog'ozning og'irligi va oxirida yumshoq joylashishi.
-// DIQQAT: prujinada `duration` millisekundda o'lchanadi va kichik qiymatlar
-// eng past chegaraga qisqartiriladi — shuning uchun soniyada o'lchanadigan
-// `visualDuration` ishlatiladi (varaq ko'zga qancha cho'zilib ochilishi).
-const FLIP = { type: 'spring', visualDuration: 2, bounce: 0.14 }
-const FLIP_FALLBACK_MS = 3400
+// Qog'ozning og'irligi va oxirida yumshoq joylashishi.
+// DIQQAT: bu yerda prujina (`type: 'spring'`) emas, oddiy vaqt asosidagi
+// (tween) animatsiya ishlatiladi. Prujinada `visualDuration` MotionValue'ni
+// bevosita animatsiya qilishda ishonchsiz chiqdi — o'lchov shuni ko'rsatdiki,
+// "2 soniya" belgilanganda animatsiya haqiqatda ancha uzoqroq davom etardi.
+// Tweenda esa `duration` sekundda va aynan shu qiymatga teng vaqtda tugaydi
+// — shuning uchun natija aniq va oldindan aytiladigan.
+const FLIP = { duration: 2, ease: [0.34, 1.4, 0.64, 1] }
+const FLIP_FALLBACK_MS = FLIP.duration * 1000 + 400
 const SWIPE_THRESHOLD = 45
+const AUTO_ADVANCE_MS = 10000
 
 /**
  * Varaqlanuvchi sahifalar.
  *
- * Varaqlash paytida ikki qatlam ko'rinadi:
- *   - ostki qatlam: ochilayotgan sahifa (oldinga borsak — keyingisi,
- *     orqaga qaytsak — hozirgisi);
- *   - ustki qatlam: egilib ag'darilayotgan varaq (CurlSheet).
+ * `progress` doim 0 (tekis, hozirgi holat) dan 1 (to'liq ag'darilgan)
+ * gacha o'zgaradi — yo'nalishdan qat'i nazar. Shu tufayli:
+ *   - ostki qatlam har doim YAKUNIY sahifani (turn.to) ko'rsatadi va
+ *     varaqlash tugagach qaytadan qurilmaydi — "yonib-o'chish" bo'lmaydi;
+ *   - ustki qatlamdagi varaq har doim HOZIRGI sahifani (turn.from)
+ *     ko'rsatadi va harakat boshida (progress=0) ostidagi bilan bir xil,
+ *     shuning uchun boshlanishi ham uzilishsiz.
+ * Aylanish yo'nalishi (soat bo'yicha yoki teskari) `forward` bilan
+ * belgilanadi — bu CurlSheet'ning o'zida hal qilinadi.
+ *
+ * Muqova (0-sahifa) dan keyin har bir sahifa 10 soniyadan so'ng o'zi
+ * varaqlanadi; foydalanuvchi tugma yoki surish bilan istalgan payt
+ * qo'lda o'tishi mumkin — bu holda hisoblagich navbatdagi sahifadan
+ * qaytadan boshlanadi.
  *
  * Sahifa ichidagi tugmalar `useBook()` orqali varaqlay oladi.
  */
 export default function Book({ pages, onPageChange }) {
   const [shown, setShown] = useState(0) // ostida ko'rinib turgan sahifa
   const [target, setTarget] = useState(0) // varaqlash yakunida bo'ladigan sahifa
-  const [turn, setTurn] = useState(null) // { under, curl, forward }
+  const [turn, setTurn] = useState(null) // { from, to, forward }
   const [firstView, setFirstView] = useState(true) // birinchi ochilish
   const progress = useMotionValue(0)
   const pointerStart = useRef(null)
@@ -47,25 +61,25 @@ export default function Book({ pages, onPageChange }) {
       const forward = next > shown
       setTarget(next)
       setFirstView(false)
-      setTurn({
-        under: forward ? next : shown,
-        curl: forward ? shown : next,
-        forward,
-      })
+      setTurn({ from: shown, to: next, forward })
 
-      // Varaqlash tugagach holatni yangilaymiz. Agar animatsiya kadrlari
-      // to'xtab qolsa (masalan, brauzer fonga o'tsa), zaxira taymer ishga
-      // tushadi — aks holda kitob qulflanib qolardi.
+      // Varaqlash aynan FLIP.duration dan keyin tugadi deb hisoblanadi —
+      // aniq va oldindan aytiladigan bo'lishi uchun `onComplete` emas, shu
+      // vaqtga moslashtirilgan taymerga tayanamiz.
       let done = false
+      progress.set(0)
+      const controls = animate(progress, 1, FLIP)
       const finish = () => {
         if (done) return
         done = true
+        controls.stop()
         setShown(next)
         setTurn(null)
       }
 
-      progress.set(forward ? 0 : 1)
-      animate(progress, forward ? 1 : 0, { ...FLIP, onComplete: finish })
+      setTimeout(finish, FLIP.duration * 1000)
+      // Juda kam holatlar uchun (masalan, sahifa fonda muzlab qolsa)
+      // qo'shimcha xavfsizlik chegarasi.
       setTimeout(finish, FLIP_FALLBACK_MS)
 
       onPageChange?.(next)
@@ -81,6 +95,15 @@ export default function Book({ pages, onPageChange }) {
     }),
     [navigate]
   )
+
+  // Muqovadan keyin har bir sahifa 10 soniyada o'zi varaqlanadi.
+  // Qo'lda o'tilsa, `shown` o'zgaradi va hisoblagich qaytadan boshlanadi.
+  useEffect(() => {
+    if (shown === 0 || shown === total - 1) return
+
+    const id = setTimeout(() => navigate(1, false), AUTO_ADVANCE_MS)
+    return () => clearTimeout(id)
+  }, [shown, total, navigate])
 
   // Barmoq bilan surish
   const onPointerDown = (event) => {
@@ -117,49 +140,51 @@ export default function Book({ pages, onPageChange }) {
           onPointerDown={onPointerDown}
           onPointerUp={onPointerUp}
         >
-          {/* Ostki qatlam */}
+          {/* Ostki qatlam — varaqlash yakunida ko'rinadigan sahifa.
+              Har doim shu ekanligi tufayli varaqlash tugagach qaytadan
+              qurilmaydi. */}
           <PageMotionContext value={turn ? turn.forward : firstView}>
             <div className="no-scrollbar absolute inset-0 overflow-y-auto [scrollbar-width:none]">
-              {pages[turn ? turn.under : shown]}
+              {pages[turn ? turn.to : shown]}
             </div>
           </PageMotionContext>
 
           {/* Ustidagi varaqning soyasi */}
-        {turn && (
-          <motion.div
-            aria-hidden="true"
-            className="pointer-events-none absolute inset-0 bg-linear-to-r from-[rgb(78,52,62)] via-[rgba(78,52,62,0.72)] to-[rgba(78,52,62,0.58)]"
-            style={{ opacity: underShade }}
-          />
-        )}
+          {turn && (
+            <motion.div
+              aria-hidden="true"
+              className="pointer-events-none absolute inset-0 bg-linear-to-r from-[rgb(78,52,62)] via-[rgba(78,52,62,0.72)] to-[rgba(78,52,62,0.58)]"
+              style={{ opacity: underShade }}
+            />
+          )}
 
-        {/* Ag'darilayotgan varaq */}
+          {/* Ag'darilayotgan varaq — har doim hozirgi (from) sahifani
+              ko'rsatadi, shuning uchun harakat ostidagi bilan bir xil
+              holatda boshlanadi */}
           {turn && (
             <PageMotionContext value={false}>
               <CurlSheet progress={progress} forward={turn.forward}>
-                {pages[turn.curl]}
+                {pages[turn.from]}
               </CurlSheet>
             </PageMotionContext>
           )}
 
           {/* Karta chegarasidan tashqarisini yopadigan pardalar. Varaq
-            aylanayotganda perspektiva tufayli karta chetidan chiqib ketadi —
-            bu pardalar uni to'rt tomondan ham yashiradi, shuning uchun varaq
-            so'nib emas, chetga siljib ko'zdan g'oyib bo'ladi. */}
-        {[
-          'right-full top-[-100vh] h-[300vh] w-screen',
-          'left-full top-[-100vh] h-[300vh] w-screen',
-          'bottom-full left-[-100vw] h-screen w-[300vw]',
-          'top-full left-[-100vw] h-screen w-[300vw]',
-        ].map((position) => (
-          <div
-            key={position}
-            aria-hidden="true"
-            className={`pointer-events-none absolute z-20 bg-blush ${position}`}
-          />
-        ))}
+              aylanayotganda perspektiva tufayli karta chetidan chiqib
+              ketadi — bu pardalar uni to'rt tomondan ham yashiradi. */}
+          {[
+            'right-full top-[-100vh] h-[300vh] w-screen',
+            'left-full top-[-100vh] h-[300vh] w-screen',
+            'bottom-full left-[-100vw] h-screen w-[300vw]',
+            'top-full left-[-100vw] h-screen w-[300vw]',
+          ].map((position) => (
+            <div
+              key={position}
+              aria-hidden="true"
+              className={`pointer-events-none absolute z-20 bg-blush ${position}`}
+            />
+          ))}
 
-        {/* Varaqlash boshqaruvi */}
           {/* Boshqaruv ikkinchi varaqdan boshlab ko'rinadi — birinchi
               sahifada "Ochish" tugmasining o'zi yetarli */}
           <div
