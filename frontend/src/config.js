@@ -18,8 +18,8 @@ export const config = {
   // To'y sanasi va vaqti.
   // Format: 'YYYY-MM-DDTHH:mm:ss+05:00'  (+05:00 — O'zbekiston vaqti)
   event: {
-    date: '2026-08-22T18:00:00+05:00',
-    timeLabel: '18:00',
+    date: '2026-08-22T09:00:00+05:00',
+    timeLabel: '9:00',
     venue: 'Shodlik to\'yxonasi',
     mapUrl:
       'https://yandex.uz/maps/?ll=71.660758%2C40.452674&mode=poi&poi%5Bpoint%5D=71.660566%2C40.452854&poi%5Buri%5D=ymapsbm1%3A%2F%2Forg%3Foid%3D153457882758&z=18.6',
